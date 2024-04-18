@@ -195,7 +195,8 @@ USE_FORCE_POINT_SOURCE          = .false.
 # to represent a (tilted) FORCESOLUTION force point source or a CMTSOLUTION moment-tensor source.
 USE_RICKER_TIME_FUNCTION        = .false.
 
-# If you want to use other CMT source time functions (Brune and Smooth Brune), set this to true, and add a line with "brune" or "smooth_brune" at the end of each CMTSOLUTION.
+# If you want to use other CMT source time functions (Brune and Smooth Brune), 
+# set this to .true., and add a line with "brune" or "smooth_brune" at the end of each CMTSOLUTION.
 USE_OTHER_TIME_FUNCTION         = .false.
 
 # use an external source time function
