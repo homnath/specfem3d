@@ -62,6 +62,9 @@
   use generate_databases_par, only: ispec_is_surface_external_mesh,iglob_is_surface_external_mesh, &
     nfaces_surface
 
+  ! mesh adjacency
+  use generate_databases_par, only: neighbors_xadj,neighbors_adjncy,num_neighbors_all
+
   use create_regions_mesh_ext_par
 
   use shared_parameters, only: ADIOS_FOR_MESH,HDF5_ENABLED
@@ -384,6 +387,11 @@
   write(IOUT) ispec_is_surface_external_mesh
   write(IOUT) iglob_is_surface_external_mesh
 
+  ! mesh adjacency
+  write(IOUT) num_neighbors_all
+  write(IOUT) neighbors_xadj
+  write(IOUT) neighbors_adjncy
+
   ! stamp for checking i/o
   itest = 9995
   write(IOUT) itest
@@ -574,13 +582,13 @@
     ! saves free surface points
     if (num_free_surface_faces > 0) then
       ! saves free surface interface points
-      allocate( iglob_tmp(NGLLSQUARE*num_free_surface_faces),stat=ier)
+      allocate(iglob_tmp(NGLLSQUARE*num_free_surface_faces),stat=ier)
       if (ier /= 0) call exit_MPI_without_rank('error allocating array 652')
       if (ier /= 0) stop 'error allocating array iglob_tmp'
       inum = 0
       iglob_tmp(:) = 0
-      do i=1,num_free_surface_faces
-        do j=1,NGLLSQUARE
+      do i = 1,num_free_surface_faces
+        do j = 1,NGLLSQUARE
           inum = inum+1
           iglob_tmp(inum) = ibool(free_surface_ijk(1,j,i), &
                                   free_surface_ijk(2,j,i), &
@@ -601,7 +609,7 @@
     if (ACOUSTIC_SIMULATION .and. ELASTIC_SIMULATION) then
       ! saves points on acoustic-elastic coupling interface
       num_points = NGLLSQUARE*num_coupling_ac_el_faces
-      allocate( iglob_tmp(num_points),stat=ier)
+      allocate(iglob_tmp(num_points),stat=ier)
       if (ier /= 0) call exit_MPI_without_rank('error allocating array 653')
       if (ier /= 0) stop 'error allocating array iglob_tmp'
       inum = 0

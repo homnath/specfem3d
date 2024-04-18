@@ -94,6 +94,7 @@
   logical,dimension(:),allocatable :: is_CPML_source,is_CPML_source_all
 
   integer :: ispec,ier
+  integer :: num_output_info
   logical :: is_done_sources
 
   ! LTS
@@ -119,6 +120,10 @@
       write(IMAIN,*)
     endif
     call flush_IMAIN()
+
+    ! output frequency for large number of receivers
+    ! number to output about ~50 steps, rounds to the next multiple of 500
+    num_output_info = max(500,int(ceiling(ceiling(NSOURCES/50.0)/500.0)*500))
   endif
 
   ! allocates temporary arrays
@@ -241,6 +246,7 @@
                                 x_new, y_new, z_new, &
                                 idomain_found, nu_found, final_distance_squared)
 
+      ! sets found position in this slice
       ispec_selected_source_subset(isource_in_this_subset) = ispec_found
 
       x_found_subset(isource_in_this_subset) = x_new
@@ -257,8 +263,9 @@
 
       ! user output progress
       if (myrank == 0 .and. NSOURCES > 1000) then
-        if (mod(isource,500) == 0) then
-          write(IMAIN,*) '  located source ',isource,'out of',NSOURCES
+        if (mod(isource,num_output_info) == 0) then
+          tCPU = wtime() - tstart
+          write(IMAIN,*) '  located source ',isource,'out of',NSOURCES,' - elapsed time: ',sngl(tCPU),'s'
           call flush_IMAIN()
         endif
       endif
@@ -750,7 +757,7 @@
   if (myrank == 0) then
     tCPU = wtime() - tstart
     write(IMAIN,*)
-    write(IMAIN,*) 'Elapsed time for detection of sources in seconds = ',tCPU
+    write(IMAIN,*) 'Elapsed time for detection of sources in seconds = ',sngl(tCPU)
     write(IMAIN,*)
     write(IMAIN,*) 'End of source detection - done'
     write(IMAIN,*)
