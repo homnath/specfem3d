@@ -69,6 +69,11 @@
 
   use shared_parameters, only: ADIOS_FOR_MESH,HDF5_ENABLED
 
+  !! setup wavefield discontinuity interface
+  use shared_parameters, only: IS_WAVEFIELD_DISCONTINUITY
+  use wavefield_discontinuity_generate_databases, only: &
+                              save_arrays_solver_mesh_wavefield_discontinuity
+
   implicit none
 
   ! local parameters
@@ -105,6 +110,7 @@
   if (myrank == 0) then
     write(IMAIN,*) '     using binary file format'
     write(IMAIN,*) '     database file (for rank 0): ',trim(filename)
+    write(IMAIN,*)
     call flush_IMAIN()
   endif
 
@@ -408,6 +414,11 @@
     call save_arrays_solver_injection_boundary()
   endif
 
+  !! setup wavefield discontinuity interface
+  if (IS_WAVEFIELD_DISCONTINUITY) then
+    call save_arrays_solver_mesh_wavefield_discontinuity()
+  endif
+
   ! synchronizes processes
   call synchronize_all()
 
@@ -575,7 +586,7 @@
     ! user output
     call synchronize_all()
     if (myrank == 0) then
-      write(IMAIN,*) '     saving additonal mesh files with surface/coupling points'
+      write(IMAIN,*) '     saving additional mesh files with surface/coupling points'
       call flush_IMAIN()
     endif
 

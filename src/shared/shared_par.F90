@@ -192,6 +192,9 @@ end module constants
   ! number of io dedicated nodes
   integer :: HDF5_IO_NODES = 0
 
+  ! HDF5 IO writing mode (collective or independent)
+  logical :: H5_COL = .true.
+
   ! flag for io-dedicated/compute node.
   logical :: IO_storage_task = .false.
   logical :: IO_compute_task = .true.
@@ -203,6 +206,9 @@ end module constants
   character(len=MAX_STRING_LEN) :: FKMODEL_FILE
   logical :: MESH_A_CHUNK_OF_THE_EARTH
   logical :: RECIPROCITY_AND_KH_INTEGRAL
+
+  ! prescribed wavefield discontinuity on an interface
+  logical :: IS_WAVEFIELD_DISCONTINUITY = .false. ! if .true. then wavefield discontinuity is turned on (default is false)
 
   end module shared_input_parameters
 

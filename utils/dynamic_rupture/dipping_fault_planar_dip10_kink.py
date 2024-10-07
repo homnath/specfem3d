@@ -140,6 +140,7 @@ def main(parameter):
     ##### MESHING fault ####
     cubit.cmd("imprint all")
     cubit.cmd("merge all")
+
     cubit.cmd("vol all size "+str(h_size*sf))
     cubit.cmd("mesh volume all")
 
@@ -173,14 +174,14 @@ def main(parameter):
     ymax   = [10,13]
     zmin   = [4,9]
     zmax   = [6,7] # Free surface.
-    entities=['face']
 
+    print('#### DEFINE BOUNDARIES #######################')
+    entities=['face']
     define_boundaries(entities,xmin,xmax,ymin,ymax,zmin,zmax)
 
 
-
     ##### USER: define material properties ################
-    cubit.cmd('#### DEFINE MATERIAL PROPERTIES #######################')
+    print('#### DEFINE MATERIAL PROPERTIES #######################')
     print('we are here')
 
     #for iblock in range(1,11,1):

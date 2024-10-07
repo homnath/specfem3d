@@ -39,6 +39,8 @@ module Teleseismic_IO_mod
                                         calc_delta_dist_baz, calc_dist_baz_cart, lowcase, &
                                         write_binary_data
   use signal_processing, only: taper_window_W
+
+  implicit none
   integer, private :: NEVENT
 
 contains
@@ -50,8 +52,8 @@ contains
   subroutine read_acqui_teleseismic_file(acqui_file, acqui_simu, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     character(len=MAX_LEN_STRING),           intent(in)    ::  acqui_file
     integer,                                 intent(in)    ::  myrank
     type(acqui),  dimension(:), allocatable, intent(inout) ::  acqui_simu
@@ -88,7 +90,7 @@ contains
         read(666,'(a)',end=99) line
         if (DEBUG_MODE) write(IIDD,'(a)') trim(line)
         !if (is_blank_line(line)) cycle                     !! no significant line
-        if (INDEX(line,'event_name') > 0) NEVENT=NEVENT+1  !! new event
+        if (INDEX(line,'event_name') > 0) NEVENT = NEVENT+1  !! new event
       enddo
 99    close(666)
 
@@ -105,7 +107,7 @@ contains
 
       ! open event file
       open(666,file=trim(acqui_file))
-      ievent=0
+      ievent = 0
       do
         read(666,'(a)',end=999) line
         !if (is_blank_line(line)) cycle
@@ -156,7 +158,7 @@ contains
 
           ! Some checks about source wavelet and traction
           if (trim(adjustl(acqui_simu(ievent)%source_wavelet_file)) /= 'undef') then
-            acqui_simu(ievent)%external_source_wavelet=.true.
+            acqui_simu(ievent)%external_source_wavelet = .true.
             ! note sure if i should use this one..
             allocate(acqui_simu(ievent)%user_source_time_function(1,nt),stat=ier)
             if (ier /= 0) call exit_MPI_without_rank('error allocating array 337')
@@ -437,7 +439,7 @@ contains
     !! hgamma, hpgamma
     !!
     !! ------------------------------------------------------------------------------
-
+    implicit none
     type(acqui), dimension(:),              intent(inout)  :: acqui_simu
     integer,                                intent(in)     :: myrank
     ! local

@@ -37,7 +37,7 @@ module fault_solver_common
   implicit none
 
   type fault_type
-    integer :: nspec=0, nglob=0
+    integer :: nspec = 0, nglob = 0
     real(kind=CUSTOM_REAL), dimension(:,:),   pointer :: T => null(),V => null(),D => null(),coord => null()
     real(kind=CUSTOM_REAL), dimension(:,:,:), pointer :: R => null()
     real(kind=CUSTOM_REAL), dimension(:),     pointer :: B => null(),invM1 => null(),invM2 => null(),Z => null()
@@ -55,7 +55,7 @@ module fault_solver_common
                                                      v1 => null(), v2 => null(), &
                                                      t1 => null(), t2 => null(), t3 => null(), tRUP => null(), tPZ => null()
     real(kind=CUSTOM_REAL), dimension(:), pointer :: xcoord => null(), ycoord => null(), zcoord => null()
-    integer                                       :: npoin=0
+    integer                                       :: npoin = 0
   end type dataXZ_type
 
   type swf_type
@@ -67,12 +67,12 @@ module fault_solver_common
   end type swf_type
 
   type twf_type
-    real(kind=CUSTOM_REAL) ::  nuc_x, nuc_y, nuc_z, nuc_r, nuc_t0, nuc_v
+    real(kind=CUSTOM_REAL) :: nuc_x,nuc_y,nuc_z,nuc_r,nuc_t0,nuc_v,mus,mud,kind
   end type twf_type
 
 
   type rsf_type
-    integer :: StateLaw = 1 ! 1=ageing law, 2=slip law
+    integer :: StateLaw = 1 ! 1 = ageing law, 2 = slip law
     real(kind=CUSTOM_REAL), dimension(:), pointer :: V0 => null(), f0 => null(), L => null(), &
                                                      V_init => null(), &
                                                      a => null(), b => null(), theta => null(), &
@@ -82,7 +82,7 @@ module fault_solver_common
 
  ! outputs on selected fault nodes at every time step:
   type dataT_type
-    integer :: npoin=0, ndat=0, nt=0
+    integer :: npoin = 0, ndat = 0, nt = 0
     real(kind=CUSTOM_REAL) :: dt
     real(kind=CUSTOM_REAL) :: element_size
     integer, dimension(:), pointer :: iglob => null()   ! on-fault global index of output nodes

@@ -833,10 +833,10 @@ contains
         call read_para_file(xyzv,filename)
         num_lines = size(xyzv(1,:))
         ! find the nearest point
-        do ipar=1,size(b)
+        do ipar = 1,size(b)
            temp = huge(temp)
-           do jpar=1,num_lines
-              dist=sqrt((coord(1,ipar)-xyzv(1,jpar))**2+(coord(2,ipar)-xyzv(2,jpar))**2+(coord(3,ipar)-xyzv(3,jpar))**2)
+           do jpar = 1,num_lines
+              dist = sqrt((coord(1,ipar)-xyzv(1,jpar))**2+(coord(2,ipar)-xyzv(2,jpar))**2+(coord(3,ipar)-xyzv(3,jpar))**2)
               if (dist < temp) then
                  b(ipar) = xyzv(4,jpar)
                  temp    = dist
@@ -870,7 +870,7 @@ contains
 
   read(IIN_2D,*) num_lines
   allocate(xyzv(4,num_lines))
-  do i=1,num_lines
+  do i = 1,num_lines
      read(IIN_2D,*) xyzv(1,i),xyzv(2,i),xyzv(3,i),xyzv(4,i)
   enddo
   close(IIN_2D)
@@ -996,6 +996,7 @@ contains
   real(kind=CUSTOM_REAL) :: deltat,half_dt,timeval
   integer :: i,ipoin,iglob,ipass
   real(kind=CUSTOM_REAL) :: nuc_x, nuc_y, nuc_z, nuc_r, nuc_t0, nuc_v, dist, tw_r, coh_size
+  real(kind=CUSTOM_REAL) :: temp_T
 
 ! note: this implementation follows the description in:
 !       - rate and state friction:
@@ -1108,18 +1109,32 @@ contains
         nuc_r   = bc%twf%nuc_r
         nuc_t0  = bc%twf%nuc_t0
         nuc_v   = bc%twf%nuc_v
-        do i = 1,bc%nglob
-            dist = ((bc%coord(1,i)-nuc_x)**2 + (bc%coord(2,i)-nuc_y)**2 + (bc%coord(3,i)-nuc_z)**2)**0.5
-            if (dist <= nuc_r) then
-                tw_r     = timeval * nuc_v
-                coh_size = nuc_t0  * nuc_v
-                if (dist <= tw_r - coh_size) then
-                    bc%mu(i) = min(bc%mu(i), bc%swf%mud(i))
-                else if (dist > tw_r - coh_size .and. dist <= tw_r ) then
-                    bc%mu(i) = min(bc%mu(i), bc%swf%mud(i) + (dist-(tw_r-coh_size))/coh_size*(bc%swf%mus(i)-bc%swf%mud(i)))
+        if (bc%twf%kind == 1) then
+            do i = 1,bc%nglob
+                dist = ((bc%coord(1,i)-nuc_x)**2 + (bc%coord(2,i)-nuc_y)**2 + (bc%coord(3,i)-nuc_z)**2)**0.5
+                if (dist < nuc_r) then
+                    tw_r     = timeval * nuc_v
+                    coh_size = nuc_t0  * nuc_v
+                    if (dist <= tw_r - coh_size) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud)
+                    else if (dist > tw_r - coh_size .and. dist <= tw_r ) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud + (dist-(tw_r-coh_size))/coh_size*(bc%twf%mus-bc%twf%mud))
+                    endif
                 endif
-            endif
-        enddo
+            enddo
+        else if (bc%twf%kind == 2) then
+            do i = 1,bc%nglob
+                dist = ((bc%coord(1,i)-nuc_x)**2 + (bc%coord(2,i)-nuc_y)**2 + (bc%coord(3,i)-nuc_z)**2)**0.5
+                if (dist < nuc_r) then
+                    temp_T = dist/0.7/3464 + 0.081*nuc_r/0.7/3464*(1/(1-(dist/nuc_r)**2)-1)
+                    if (timeval >= temp_T+nuc_t0) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud)
+                    else if (timeval >= temp_T .and. timeval < temp_T+nuc_t0) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud + (temp_T+nuc_t0-timeval)/nuc_t0*(bc%twf%mus-bc%twf%mud))
+                    endif
+                endif
+            enddo
+        endif
       endif
 
       ! TPV16 benchmark
@@ -1299,6 +1314,7 @@ contains
   real(kind=CUSTOM_REAL) :: deltat,half_dt,timeval
   integer :: i,ipoin,iglob,ipass
   real(kind=CUSTOM_REAL) :: nuc_x, nuc_y, nuc_z, nuc_r, nuc_t0, nuc_v, dist, tw_r, coh_size
+  real(kind=CUSTOM_REAL) :: temp_T
   ! LTS
   integer :: inum,num_p_local,iilevel
   ! only update p-level nodes (when called for each ilevel separately) set this to .true., otherwise
@@ -1510,18 +1526,32 @@ contains
         nuc_r   = bc%twf%nuc_r
         nuc_t0  = bc%twf%nuc_t0
         nuc_v   = bc%twf%nuc_v
-        do i = 1,bc%nglob
-            dist = ((bc%coord(1,i)-nuc_x)**2 + (bc%coord(2,i)-nuc_y)**2 + (bc%coord(3,i)-nuc_z)**2)**0.5
-            if (dist <= nuc_r) then
-                tw_r     = timeval * nuc_v
-                coh_size = nuc_t0  * nuc_v
-                if (dist <= tw_r - coh_size) then
-                    bc%mu(i) = min(bc%mu(i), bc%swf%mud(i))
-                else if (dist > tw_r - coh_size .and. dist <= tw_r ) then
-                    bc%mu(i) = min(bc%mu(i), bc%swf%mud(i) + (dist-(tw_r-coh_size))/coh_size*(bc%swf%mus(i)-bc%swf%mud(i)))
+        if (bc%twf%kind == 1) then
+            do i = 1,bc%nglob
+                dist = ((bc%coord(1,i)-nuc_x)**2 + (bc%coord(2,i)-nuc_y)**2 + (bc%coord(3,i)-nuc_z)**2)**0.5
+                if (dist < nuc_r) then
+                    tw_r     = timeval * nuc_v
+                    coh_size = nuc_t0  * nuc_v
+                    if (dist <= tw_r - coh_size) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud)
+                    else if (dist > tw_r - coh_size .and. dist <= tw_r ) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud + (dist-(tw_r-coh_size))/coh_size*(bc%twf%mus-bc%twf%mud))
+                    endif
                 endif
-            endif
-        enddo
+            enddo
+        else if (bc%twf%kind == 2) then
+            do i = 1,bc%nglob
+                dist = ((bc%coord(1,i)-nuc_x)**2 + (bc%coord(2,i)-nuc_y)**2 + (bc%coord(3,i)-nuc_z)**2)**0.5
+                if (dist < nuc_r) then
+                    temp_T = dist/0.7/3464 + 0.081*nuc_r/0.7/3464*(1/(1-(dist/nuc_r)**2)-1)
+                    if (timeval >= temp_T+nuc_t0) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud)
+                    else if (timeval >= temp_T .and. timeval < temp_T+nuc_t0) then
+                        bc%mu(i) = min(bc%mu(i), bc%twf%mud + (temp_T+nuc_t0-timeval)/nuc_t0*(bc%twf%mus-bc%twf%mud))
+                    endif
+                endif
+            enddo
+        endif
       endif
 
       ! TPV16 benchmark
@@ -1860,7 +1890,7 @@ contains
   mus = 0.6_CUSTOM_REAL
   mud = 0.1_CUSTOM_REAL
   dc = 1.0_CUSTOM_REAL
-  p  = 0.0_CUSTOM_REAL
+  p  = 1.0_CUSTOM_REAL
   C = 0.0_CUSTOM_REAL
   T = HUGEVAL
 
@@ -1906,8 +1936,8 @@ contains
 
   integer :: ier
 
-  real(kind=CUSTOM_REAL) :: nuc_x, nuc_y, nuc_z, nuc_r, nuc_t0, nuc_v
-  NAMELIST / TWF / nuc_x, nuc_y, nuc_z, nuc_r,nuc_t0,nuc_v
+  real(kind=CUSTOM_REAL) :: nuc_x, nuc_y, nuc_z, nuc_r, nuc_t0, nuc_v, mus, mud, kind
+  NAMELIST / TWF / nuc_x, nuc_y, nuc_z, nuc_r,nuc_t0,nuc_v,mus,mud,kind
 
   nuc_x  = 0.0_CUSTOM_REAL
   nuc_y  = 0.0_CUSTOM_REAL
@@ -1916,6 +1946,10 @@ contains
   nuc_r  = 0.0_CUSTOM_REAL
   nuc_t0 = 0.0_CUSTOM_REAL
   nuc_v  = 0.0_CUSTOM_REAL
+
+  mus    = 0.0_CUSTOM_REAL
+  mud    = 0.0_CUSTOM_REAL
+  kind   = 1
 
   read(IIN_PAR, nml=TWF,iostat=ier)
   if (ier /= 0) write(*,*) 'TWF not found in Par_file_faults.'
@@ -1927,6 +1961,10 @@ contains
   f%nuc_r  = nuc_r
   f%nuc_t0 = nuc_t0
   f%nuc_v  = nuc_v
+
+  f%mus    = mus
+  f%mud    = mud
+  f%kind   = kind
 
   end subroutine twf_init
 
@@ -2113,7 +2151,7 @@ contains
   integer :: nFload
 !  real(kind=CUSTOM_REAL), dimension(:,:), allocatable :: init_vel
   integer :: nglob,ier
-  integer :: InputStateLaw = 1 ! By default using aging law: 1=ageing law, 2=slip law
+  integer :: InputStateLaw = 1 ! By default using aging law: 1 = ageing law, 2 = slip law
 
   NAMELIST / RSF / V0,f0,a,b,L,V_init,theta_init,nV0,nf0,na,nb,nL,nV_init,ntheta_init, &
                    C,T,nC,nForcedRup,Vw,fw,nVw,nfw,InputStateLaw

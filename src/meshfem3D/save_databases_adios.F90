@@ -76,7 +76,7 @@
   ! MPI Cartesian topology
   ! E for East (= XI_MIN), W for West (= XI_MAX),
   ! S for South (= ETA_MIN), N for North (= ETA_MAX)
-  integer, parameter :: W=1,E=2,S=3,N=4,NW=5,NE=6,SE=7,SW=8
+  integer, parameter :: W = 1,E = 2,S = 3,N = 4,NW = 5,NE = 6,SE = 7,SW = 8
 
   logical,intent(in) :: iMPIcut_xi(2,nspec),iMPIcut_eta(2,nspec)
 
@@ -674,7 +674,7 @@
   max_global_values(11) = nspec_interfaces_max
   max_global_values(12) = nspec_CPML
 
-  call max_allreduce_i(max_global_values,num_vars)
+  call max_all_all_veci(max_global_values,num_vars)
 
   nglob_wmax          = max_global_values(1)
   nspec_wmax          = max_global_values(2)

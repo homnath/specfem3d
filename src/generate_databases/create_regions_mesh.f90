@@ -62,6 +62,12 @@
                           nnodes_coords_open,nodes_coords_open,ANY_FAULT_IN_THIS_PROC, &
                           ANY_FAULT
 
+  !! setup wavefield discontinuity interface
+  use shared_parameters, only: IS_WAVEFIELD_DISCONTINUITY
+  use wavefield_discontinuity_generate_databases, only: &
+                               setup_boundary_wavefield_discontinuity, &
+                               read_partition_files_wavefield_discontinuity
+
   implicit none
 
   ! local parameters
@@ -328,6 +334,18 @@
 
   ! user output
   call print_timing()
+
+  ! setup wavefield discontinuity interface
+  if (IS_WAVEFIELD_DISCONTINUITY) then
+    call synchronize_all()
+    if (myrank == 0) then
+      write(IMAIN,*)
+      write(IMAIN,*) '  ...setting up wavefield discontinuity boundary '
+      call flush_IMAIN()
+    endif
+    call read_partition_files_wavefield_discontinuity()
+    call setup_boundary_wavefield_discontinuity()
+  endif
 
   ! saves the binary mesh files
   call synchronize_all()
@@ -1460,8 +1478,8 @@ contains
 
           ! stores on surface GLL points (assuming NGLLX = NGLLY = NGLLZ)
           igll = 0
-          do j=1,NGLLZ
-            do i=1,NGLLX
+          do j = 1,NGLLZ
+            do i = 1,NGLLX
               igll = igll+1
               ijk_moho_bot(:,igll,ispec2D) = ijk_face(:,i,j)
               normal_moho_bot(:,igll,ispec2D) = normal_face(:,i,j)
@@ -1484,8 +1502,8 @@ contains
 
           ! GLL points
           igll = 0
-          do j=1,NGLLZ
-            do i=1,NGLLX
+          do j = 1,NGLLZ
+            do i = 1,NGLLX
               igll = igll+1
               ijk_moho_top(:,igll,ispec) = ijk_face(:,i,j)
               ! note: top elements have normal pointing into element

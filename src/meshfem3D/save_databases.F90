@@ -46,6 +46,9 @@
     nspec_CPML,is_CPML,CPML_to_spec,CPML_regions, &
     SAVE_MESH_AS_CUBIT
 
+  !! setting up wavefield discontinuity interface
+  use shared_parameters, only: IS_WAVEFIELD_DISCONTINUITY
+
   implicit none
 
   ! number of spectral elements in each block
@@ -70,7 +73,7 @@
   ! local parameters
   ! MPI Cartesian topology
   ! E for East (= XI_MIN), W for West (= XI_MAX), S for South (= ETA_MIN), N for North (= ETA_MAX)
-  integer, parameter :: W=1,E=2,S=3,N=4,NW=5,NE=6,SE=7,SW=8
+  integer, parameter :: W = 1,E = 2,S = 3,N = 4,NW = 5,NE = 6,SE = 7,SW = 8
 
   ! CPML
   integer :: nspec_CPML_total,ispec_CPML
@@ -256,6 +259,7 @@
     ! output
     write(IIN_database) ispec,material_index(1,ispec),material_index(2,ispec),(loc_node(ia),ia = 1,NGNOD)
   enddo
+
 
   ! Boundaries
   !
@@ -596,6 +600,10 @@
 
   deallocate(material_index)
 
+  ! setting up wavefield discontinuity interface
+  if (IS_WAVEFIELD_DISCONTINUITY) &
+    call write_wavefield_discontinuity_database()
+
   ! user output
   if (myrank == 0) then
     write(IMAIN,*) '  done mesh files'
@@ -622,6 +630,9 @@
     NSPEC2DMAX_XMIN_XMAX,NSPEC2DMAX_YMIN_YMAX,NSPEC2D_BOTTOM,NSPEC2D_TOP, &
     NMATERIALS,material_properties, &
     nspec_CPML,CPML_to_spec,CPML_regions
+
+  !! setting up wavefield discontinuity interface
+  use shared_parameters, only: IS_WAVEFIELD_DISCONTINUITY
 
   implicit none
 
@@ -777,6 +788,10 @@
                                   iglob_to_nodeid(ibool(1,NGLLZ_M,NGLLZ_M,ispec))
   enddo
   close(IIN_database)
+
+  !! setting up wavefield discontinuity interface
+  if (IS_WAVEFIELD_DISCONTINUITY) &
+    call write_wavefield_discontinuity_file()
 
   open(IIN_database,file='MESH/absorbing_surface_file_xmin')
   write(IIN_database,*) nspec2D_xmin
@@ -1040,7 +1055,7 @@
   ! modele 1D
   open(88,file='MESH/model_1D.in')
   write(88,*) nlayer,4
-  do i=1,nlayer
+  do i = 1,nlayer
     write(88,*) zlayer(i)
     write(88,'(4f20.10)') vpv(i,:)
     write(88,'(4f20.10)') vsv(i,:)
@@ -1082,9 +1097,9 @@
   close(90)
 
   ! xmin
-  do ielm=1,nspec2D_xmin
+  do ielm = 1,nspec2D_xmin
 
-    ispec=ibelm_xmin(ielm)
+    ispec = ibelm_xmin(ielm)
 
     write(89,*) ispec,ielm,1
 
@@ -1134,9 +1149,9 @@
     kmin = 1
     kmax = NGLLZ
 
-    do k=kmin,kmax
-      do j=jmin,jmax
-        do i=imin,imax
+    do k = kmin,kmax
+      do j = jmin,jmax
+        do i = imin,imax
           write(92,'(3f25.10,i10,6i3)') xstore(i,j,k),ystore(i,j,k),zstore(i,j,k),ispec,i,j,k,1, &
                                         ilayer,updown(k)
           write(91,1000) radius(i,j,k), latitud(i,j,k), longitud(i,j,k)
@@ -1148,9 +1163,9 @@
   enddo
 
   ! xmax
-  do ielm=1,nspec2D_xmax
+  do ielm = 1,nspec2D_xmax
 
-    ispec=ibelm_xmax(ielm)
+    ispec = ibelm_xmax(ielm)
 
     write(89,*) ispec,ielm,2
 
@@ -1200,9 +1215,9 @@
     kmin = 1
     kmax = NGLLZ
 
-    do k=kmin,kmax
-      do j=jmin,jmax
-        do i=imin,imax
+    do k = kmin,kmax
+      do j = jmin,jmax
+        do i = imin,imax
           write(92,'(3f25.10,i10,6i3)') xstore(i,j,k),ystore(i,j,k),zstore(i,j,k),ispec,i,j,k,2, &
                                         ilayer,updown(k)
           write(91,1000) radius(i,j,k), latitud(i,j,k), longitud(i,j,k)
@@ -1214,9 +1229,9 @@
   enddo
 
   ! ymin
-  do ielm=1,nspec2D_ymin
+  do ielm = 1,nspec2D_ymin
 
-    ispec=ibelm_ymin(ielm)
+    ispec = ibelm_ymin(ielm)
 
     write(89,*) ispec,ielm,3
 
@@ -1266,9 +1281,9 @@
     kmin = 1
     kmax = NGLLZ
 
-    do k=kmin,kmax
-      do j=jmin,jmax
-        do i=imin,imax
+    do k = kmin,kmax
+      do j = jmin,jmax
+        do i = imin,imax
           write(92,'(3f25.10,i10,6i3)') xstore(i,j,k),ystore(i,j,k),zstore(i,j,k),ispec,i,j,k,3, &
                                         ilayer,updown(k)
           write(91,1000) radius(i,j,k), latitud(i,j,k), longitud(i,j,k)
@@ -1280,9 +1295,9 @@
   enddo
 
   ! ymax
-  do ielm=1,nspec2D_ymax
+  do ielm = 1,nspec2D_ymax
 
-    ispec=ibelm_ymax(ielm)
+    ispec = ibelm_ymax(ielm)
 
     write(89,*) ispec,ielm,4
 
@@ -1332,9 +1347,9 @@
     kmin = 1
     kmax = NGLLZ
 
-    do k=kmin,kmax
-      do j=jmin,jmax
-        do i=imin,imax
+    do k = kmin,kmax
+      do j = jmin,jmax
+        do i = imin,imax
           write(92,'(3f25.10,i10,6i3)') xstore(i,j,k),ystore(i,j,k),zstore(i,j,k),ispec,i,j,k,4, &
                                         ilayer,updown(k)
           write(91,1000) radius(i,j,k), latitud(i,j,k), longitud(i,j,k)
@@ -1346,9 +1361,9 @@
   enddo
 
   ! bottom
-  do ielm=1,nspec2D_BOTTOM
+  do ielm = 1,nspec2D_BOTTOM
 
-    ispec=ibelm_bottom(ielm)
+    ispec = ibelm_bottom(ielm)
 
     write(89,*) ispec,ielm,5
 
@@ -1398,9 +1413,9 @@
     kmin = 1
     kmax = 1
 
-    do k=kmin,kmax
-      do j=jmin,jmax
-        do i=imin,imax
+    do k = kmin,kmax
+      do j = jmin,jmax
+        do i = imin,imax
           write(92,'(3f25.10,i10,6i3)') xstore(i,j,k),ystore(i,j,k),zstore(i,j,k),ispec,i,j,k,5, &
                                         ilayer,updown(k)
           write(91,1000) radius(i,j,k), latitud(i,j,k), longitud(i,j,k)
@@ -1413,9 +1428,9 @@
 
   if (buried_box) then
     ! top
-    do ielm=1,nspec2D_TOP
+    do ielm = 1,nspec2D_TOP
 
-      ispec=ibelm_top(ielm)
+      ispec = ibelm_top(ielm)
 
       write(89,*) ispec,ielm,6
 
@@ -1465,9 +1480,9 @@
       kmin = NGLLZ
       kmax = NGLLZ
 
-      do k=kmin,kmax
-        do j=jmin,jmax
-          do i=imin,imax
+      do k = kmin,kmax
+        do j = jmin,jmax
+          do i = imin,imax
             write(92,'(3f25.10,i10,6i3)') xstore(i,j,k),ystore(i,j,k),zstore(i,j,k),ispec,i,j,k,6, &
                                           ilayer,updown(k)
             write(91,1000) radius(i,j,k), latitud(i,j,k), longitud(i,j,k)

@@ -524,12 +524,12 @@
       if (DT_PRESENT) then
         filename = 'res_Courant_number'
         call write_checkmesh_data_hdf5(filename,tmp1)
-      else
-        ! minimum period estimate
-        filename = 'res_minimum_period'
-        call write_checkmesh_data_hdf5(filename,tmp2)
-        call write_checkmesh_xdmf_hdf5(NSPEC_AB)
       endif
+
+      ! minimum period estimate
+      filename = 'res_minimum_period'
+      call write_checkmesh_data_hdf5(filename,tmp2)
+      call write_checkmesh_xdmf_hdf5(NSPEC_AB)
     else
       ! default output
       call create_name_database(prname,myrank,LOCAL_PATH)
@@ -1335,7 +1335,7 @@
   call max_all_cr(z_max,z_max_glob)
 
   ! gets distances for each grid cell
-  do ispec=1,NSPEC_AB
+  do ispec = 1,NSPEC_AB
 
     ! computes minimum and maximum size of this grid cell
     call get_elem_minmaxsize(elemsize_min,elemsize_max,ispec, &
@@ -1416,9 +1416,9 @@
 
   ! loops over all GLL points
   ! (combines directions to speed up calculations)
-  do k=1,NGLLZ-1
-    do j=1,NGLLY-1
-      do i=1,NGLLX-1
+  do k = 1,NGLLZ-1
+    do j = 1,NGLLY-1
+      do i = 1,NGLLX-1
         ! reference point
         iglob1 = ibool(i,j,k,ispec)
         x1 = xstore(iglob1)

@@ -106,6 +106,7 @@ contains
 !-------------------------------------------------------------------------------------------------------------------
   subroutine init_input_output_mod(inversion_param, acqui_simu, myrank)
 
+    implicit none
     integer,                                 intent(in)    ::  myrank
     type(acqui),  dimension(:), allocatable, intent(inout) ::  acqui_simu
     type(inver),                             intent(inout) ::  inversion_param
@@ -285,6 +286,8 @@ contains
 !> read input inversion parameter file
 !--------------------------------------------------------------------------------------------------------------------
   subroutine SetUpInversion(inversion_param, myrank)
+
+    implicit none
     type(inver),                         intent(inout)    :: inversion_param
     integer,                             intent(in)       :: myrank
 
@@ -367,6 +370,7 @@ contains
 !--------------------------------------------------------------------------------------------------------------------
   subroutine read_and_distribute_events_for_simultaneous_runs(NUMBER_OF_SIMULTANEOUS_RUNS, acqui_file_ref)
 
+    implicit none
     character(len=MAX_LEN_STRING),       intent(in)       :: acqui_file_ref
     integer,                             intent(in)       :: NUMBER_OF_SIMULTANEOUS_RUNS
     ! local
@@ -381,14 +385,14 @@ contains
     write(*,*)  ' NUMBER OF SIMULTANEOUS RUNS > 0 '
     write(*,*)
     call flush_iunit(6)
-    number_of_events_in_acqui_file_ref=0
+    number_of_events_in_acqui_file_ref = 0
     open(666,file=trim(acqui_file_ref))
     do
        read(666,'(a)',end=99) line
        !! no significant line
        if (is_blank_line(line)) cycle
        !! new event
-       if (INDEX(line,'event_name') > 0) number_of_events_in_acqui_file_ref=number_of_events_in_acqui_file_ref+1
+       if (INDEX(line,'event_name') > 0) number_of_events_in_acqui_file_ref = number_of_events_in_acqui_file_ref+1
     enddo
 99  close(666)
 
@@ -398,7 +402,7 @@ contains
 
     allocate(nevent_in_group(NUMBER_OF_SIMULTANEOUS_RUNS),stat=ier)
     if (ier /= 0) call exit_MPI_without_rank('error allocating array 392')
-    do ievent=1,NUMBER_OF_SIMULTANEOUS_RUNS
+    do ievent = 1,NUMBER_OF_SIMULTANEOUS_RUNS
        if (ievent <= nevent_remained) then
           nevent_in_group(ievent)= nevent_per_group+1
        else
@@ -407,8 +411,8 @@ contains
     enddo
 
     ievent_global = 0
-    ievent_in_group=0
-    igroup=1
+    ievent_in_group = 0
+    igroup = 1
     open(666,file=trim(acqui_file_ref))
     write(prefix_to_path_tmp,"('run',i4.4,'/')") igroup
     open(777, file=trim(prefix_to_path_tmp)//'DATA/inverse_problem/acquisition.dat')
@@ -422,18 +426,18 @@ contains
            ievent_global = ievent_global + 1
            write(*,*)
            write(*,*) '   next event ', ievent_global
-           ievent_in_group=ievent_in_group+1
+           ievent_in_group = ievent_in_group+1
 
        endif
 
        !! write lines related to the current event
        if (ievent_in_group > nevent_in_group(igroup)) then
-          igroup=igroup+1
+          igroup = igroup+1
           write(*,*) ' group ', igroup
           write(prefix_to_path_tmp,"('run',i4.4,'/')") igroup
           close(777)
           open(777, file=trim(prefix_to_path_tmp)//'DATA/inverse_problem/acquisition.dat')
-          ievent_in_group=1
+          ievent_in_group = 1
        endif
        write(777, '(a)') trim(line)
        write(*,*) trim(line)
@@ -451,7 +455,6 @@ contains
   subroutine create_name_database_inversion(prname,iproc,ievent,LOCAL_PATH)
 
     implicit none
-
     integer,                       intent(in)   :: iproc, ievent
     ! name of the database file
     character(len=MAX_LEN_STRING), intent(inout) :: prname
@@ -472,6 +475,7 @@ contains
 !--------------------------------------------------------------------------------------------------------------------
   subroutine WriteOutputs(inversion_param)
 
+    implicit none
     type(inver),                                                intent(in)    :: inversion_param
 
     !! FOR NOT ONLY ONE OUPTPUT BUT FOR FURTHER DEV WE WILL ADD OTHER
@@ -489,6 +493,7 @@ contains
     use my_mpi
     use specfem_par, only: myrank
 
+    implicit none
     type(inver),                                    intent(inout) :: inversion_param
     character(len=MAX_LEN_STRING),                  intent(inout) :: mode_running
     integer                                                       :: ier
@@ -565,6 +570,7 @@ contains
 
   subroutine dump_adjoint_sources(ievent, acqui_simu, myrank)
 
+    implicit none
     integer,                    intent(in)    :: ievent, myrank
     type(acqui),  dimension(:), intent(inout) :: acqui_simu
     ! local
@@ -590,6 +596,7 @@ contains
 !----------------------------------------------------------------
   subroutine dump_seismograms(ievent, array_to_write,  acqui_simu, myrank)
 
+    implicit none
     integer,                                   intent(in)    :: ievent, myrank
     real(kind=CUSTOM_REAL),  dimension(:,:,:), intent(in)    :: array_to_write
     type(acqui),  dimension(:),                intent(inout) :: acqui_simu
@@ -625,6 +632,7 @@ contains
 !----------------------------------------------------------------
   subroutine dump_filtered_data(ievent, array_to_write,  acqui_simu, myrank)
 
+    implicit none
     integer,                                   intent(in)    :: ievent,myrank
     real(kind=CUSTOM_REAL),  dimension(:,:,:), intent(in)    :: array_to_write
     type(acqui),  dimension(:),                intent(inout) :: acqui_simu
@@ -652,8 +660,8 @@ contains
   subroutine write_bin_sismo_on_disk(ievent, acqui_simu, array_to_write, name_file_to_write, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     integer,                                   intent(in)    :: myrank, ievent
     character(len=MAX_LEN_STRING),             intent(in)    :: name_file_to_write
     real(kind=CUSTOM_REAL),  dimension(:,:,:), intent(in)    :: array_to_write
@@ -694,7 +702,7 @@ contains
           call MPI_RECV(Gather_loc, Nt*nsta_irank*NDIM, CUSTOM_MPI_TYPE, irank, tag, my_local_mpi_comm_world, status,  ier)
           call MPI_RECV(irec_global, nsta_irank, MPI_INTEGER, irank, tag, my_local_mpi_comm_world, status,  ier)
 
-          do icomp=1,NDIM
+          do icomp = 1,NDIM
             do irec_local = 1, nsta_irank
               Gather(irec_global(irec_local), :, icomp) = Gather_loc(irec_local, :, icomp)
             enddo
@@ -788,8 +796,8 @@ contains
   subroutine read_data_gather(acqui_simu, inversion_param, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     integer,                                     intent(in)    :: myrank
     type(acqui), dimension(:),                   intent(inout) :: acqui_simu
     type(inver),                                 intent(inout) :: inversion_param
@@ -1000,8 +1008,8 @@ contains
   subroutine read_pif_data_gather(acqui_simu, inversion_param, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     integer,                                     intent(in)    :: myrank
     type(acqui),  dimension(:),                  intent(inout) :: acqui_simu
     type(inver),                                 intent(inout) :: inversion_param
@@ -1109,9 +1117,9 @@ contains
         ncomp_inv = 0
         data_type_inv = inversion_param%inverted_data_type
         if (data_type_inv /= data_type_read) then
-          write(*,*)'ERROR: requested type of inverted data is different from observed data'
-          write(*,*)'       integration of differentiation of observed not implemented yet'
-          write(*,*)'NOW STOP'
+          write(*,*) 'ERROR: requested type of inverted data is different from observed data'
+          write(*,*) '       integration of differentiation of observed not implemented yet'
+          write(*,*) 'NOW STOP'
           stop
         endif
         if (data_type_inv == 'd') inversion_param%get_synthetic_displacement = .true.
@@ -1162,8 +1170,8 @@ contains
           !! Data rotation required to pass in mesh system (zen -> xyz)
           !call define_mesh_rotation_matrix(lat0,lon0,azi0)
           !call rotate_comp_glob2mesh(vz2, vn, ve, stalat, stalon, nt, nsta, vx, vy, vz)
-          write(*,*)'ERROR: qtl is not implemented yet'
-          write(*,*)'NOW STOP'
+          write(*,*) 'ERROR: qtl is not implemented yet'
+          write(*,*) 'NOW STOP'
           stop
         end select
 
@@ -1309,8 +1317,8 @@ contains
   subroutine write_pif_data_gather(ievent, acqui_simu, inversion_param, array_to_write, name_file_to_write, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     integer,                                   intent(in)    :: myrank, ievent
     real(kind=CUSTOM_REAL),  dimension(:,:,:), intent(in)    :: array_to_write
     type(acqui),             dimension(:),     intent(inout) :: acqui_simu
@@ -1364,7 +1372,7 @@ contains
           call MPI_RECV(Gather_loc, Nt*nsta_irank*NDIM, CUSTOM_MPI_TYPE, irank, tag, my_local_mpi_comm_world, status,  ier)
           call MPI_RECV(irec_global, nsta_irank, MPI_INTEGER, irank, tag, my_local_mpi_comm_world, status,  ier)
 
-          do icomp=1,NDIM
+          do icomp = 1,NDIM
             do irec_local = 1, nsta_irank
               Gather(irec_global(irec_local), :, icomp) = Gather_loc(irec_local, :, icomp)
             enddo
@@ -1386,7 +1394,7 @@ contains
           do irec_local = 1, NSTA_LOC
             irec_global(irec_local) = acqui_simu(ievent)%number_receiver_global(irec_local)
             !! choose the rigth seismograms_*
-            do icomp=1,NDIM
+            do icomp = 1,NDIM
               Gather_loc(irec_local,:,icomp) = array_to_write(icomp,irec_local,:)
             enddo
           enddo
@@ -1407,7 +1415,7 @@ contains
     !!  write gather file
     if (myrank == 0) then
       ! main process still needs to gather its own array data
-      do icomp=1,NDIM
+      do icomp = 1,NDIM
         do irec_local = 1, acqui_simu(ievent)%nsta_slice
           !! choose the right seismograms_*
           Gather(acqui_simu(ievent)%number_receiver_global(irec_local),:,icomp) = array_to_write(icomp,irec_local,:)
@@ -1465,8 +1473,8 @@ contains
           !! Data rotation required to pass in mesh system (zen -> xyz)
           !call define_mesh_rotation_matrix(lat0,lon0,azi0)
           !call rotate_comp_glob2mesh(vz2, vn, ve, stalat, stalon, nt, nsta, vx, vy, vz)
-          write(*,*)'ERROR: qtl is not implemented yet'
-          write(*,*)'NOW STOP'
+          write(*,*) 'ERROR: qtl is not implemented yet'
+          write(*,*) 'NOW STOP'
           stop
         end select
 
@@ -1514,8 +1522,8 @@ contains
   subroutine read_acqui_file(acqui_file, acqui_simu, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     character(len=MAX_LEN_STRING),           intent(in)    ::  acqui_file
     integer,                                 intent(in)    ::  myrank
     type(acqui),  dimension(:), allocatable, intent(inout) ::  acqui_simu
@@ -1720,8 +1728,8 @@ contains
   subroutine read_inver_file(inver_file, inversion_param, myrank)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     character(len=MAX_LEN_STRING), intent(in)    ::  inver_file
     integer,                       intent(in)    ::  myrank
     type(inver),                   intent(inout) ::  inversion_param
@@ -2052,6 +2060,7 @@ contains
 !----------------------------------------------------------------
   subroutine store_default_acqui_values(acqui_simu, ievent)
 
+    implicit none
     type(acqui), dimension(:), intent(inout)  :: acqui_simu
     integer,                   intent(in)     :: ievent
 
@@ -2070,6 +2079,7 @@ contains
 !----------------------------------------------------------------
   logical function is_blank_line(line)
 
+    implicit none
     character(len=MAX_LEN_STRING), intent(in) :: line
     is_blank_line = .false.
     if (len(trim(adjustl(line))) == 0) is_blank_line = .true.
@@ -2082,6 +2092,7 @@ contains
 !----------------------------------------------------------------
   subroutine remove_blank_in_line(line, line_without_blank)
 
+    implicit none
     character(len=MAX_LEN_STRING), intent(in)    :: line
     character(len=MAX_LEN_STRING), intent(inout) :: line_without_blank
     integer                                      :: n, i, k
@@ -2104,6 +2115,7 @@ contains
 !------------------------------------------------------------
   subroutine get_stations(acqui_simu)
 
+    implicit none
     type(acqui), dimension(:), intent(inout)               :: acqui_simu
 
     integer                                                :: ievent, irec, nsta, nrec_loc, ier
@@ -2289,8 +2301,8 @@ contains
   subroutine get_point_source(acqui_simu)
 
     use my_mpi             !! module from specfem
-    include "precision.h"  !! from specfem
 
+    implicit none
     type(acqui), dimension(:),              intent(inout)     :: acqui_simu
     ! locals
     character(len=MAX_STRING_LEN)                             :: filename
@@ -2564,7 +2576,7 @@ contains
            !! read source time function
            if (myrank == 0) then
               open(IINN, file=trim(acqui_simu(ievent)%source_wavelet_file))
-              do it=1,acqui_simu(ievent)%Nt_data
+              do it = 1,acqui_simu(ievent)%Nt_data
                  read(IINN, *) dt_dummy, acqui_simu(ievent)%user_source_time_function(it,1)
               enddo
               close(IINN)
@@ -2572,7 +2584,7 @@ contains
 
            call MPI_BCAST(acqui_simu(ievent)%user_source_time_function,acqui_simu(ievent)%Nt_data, &
                 CUSTOM_MPI_TYPE,0,my_local_mpi_comm_world,ier)
-           USE_FORCE_POINT_SOURCE=.false.
+           USE_FORCE_POINT_SOURCE = .false.
 
         case default
           !! define here reading of source file, and define accordingly the arrays :
@@ -2621,7 +2633,7 @@ contains
       acqui_simu(ievent)%t0 = t0
 
       nsrc_loc = 0
-      do isrc=1, NSOURCES
+      do isrc = 1, NSOURCES
         if (myrank == acqui_simu(ievent)%islice_selected_source(isrc)) then
           nsrc_loc = nsrc_loc + 1
           !! Warning in this subroutine you must add your case for source source
@@ -2662,7 +2674,7 @@ contains
 
 !  subroutine bcast_all_acqui(acqui_simu, inversion_param, myrank)
 !    use my_mpi             !! module from specfem
-!    include "precision.h"  !! from specfem
+!    implicit none
 !    type(acqui), dimension(:), intent(inout)  :: acqui_simu
 !    type(inver),               intent(inout)  :: inversion_param
 !    integer,                   intent(in)     :: myrank
